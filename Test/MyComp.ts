@@ -32,32 +32,32 @@ export class CampaignReachComponent implements OnInit {
     this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
   }
 
+  updateMuDataFilterInfo(newObj: PostMuFilter,actionType: UserActionType){
+      if (actionType == UserActionType.None) {
+        if (this.mufilters.length !== 0) 
+          this.mufilters.pop();
+
+        this.mufilters.push(newObj);  
+      } else if (actionType === UserActionType.AddAnother) {
+        if (this.mufilters.length !== this.lastKnownLength)
+          this.mufilters.pop();
+         
+        this.mufilters.push(newObj);
+      } else if (actionType === UserActionType.Duplicate && this.checkNumberOfTimesItemExist(newObj, false) < 2) {
+        this.mufilters.push(newObj);
+        this.lastKnownLength = this.mufilters.length;
+      }
+  }
+
   updateMuData(value: IMuFilter, actionType: UserActionType) {
     const newObj = JSON.parse(JSON.stringify(value)) as PostMuFilter;
     if (actionType !== UserActionType.NoAction) {
-      if (newObj?.year) {
-        if (actionType == UserActionType.None) {
-          if (this.mufilters.length === 0) {
-            this.mufilters.push(newObj);
-          } else {
-            this.mufilters.pop();
-            this.mufilters.push(newObj);
-          }
-        } else if (actionType === UserActionType.AddAnother) {
-          if (this.mufilters.length === this.lastKnownLength) {
-            this.mufilters.push(newObj);
-          } else {
-            this.mufilters.pop();
-            this.mufilters.push(newObj);
-          }
-        } else if (actionType === UserActionType.Duplicate && this.checkNumberOfTimesItemExist(newObj, false) < 2) {
-          this.mufilters.push(newObj);
-          this.lastKnownLength = this.mufilters.length;
-        }
-      }
+      if (newObj?.year) 
+        this.updateMuDataFilterInfo(newObj, actionType);
     } else {
       this.lastKnownLength = this.mufilters.length;
     }
+
     if (actionType === UserActionType.Remove) {
       this.lastKnownLength--;
     }
@@ -101,14 +101,14 @@ export class CampaignReachComponent implements OnInit {
   updateCategoryNamesFromArchive(value: ICategory[]) {
     const newObj = JSON.parse(JSON.stringify(value)) as ICategory[];
     newObj.forEach(x => {
-      this.updateIndustryInfo(x);
+      if (x?.industry) {
+        this.updateIndustryInfo(x);
+      }
     });
     this.allCategories = newObj;
   }
 
   updateIndustryInfo(x: ICategory){
-    if (x?.industry) {
-
       if (x?.industry) {
         x.industry.name = x.industry.name;
       }
@@ -119,7 +119,6 @@ export class CampaignReachComponent implements OnInit {
       if (x?.productSubType) {
         x.productSubType.name = x.productSubType.name;
       }
-    }
   }
 
   updateCategoryNamesOnLoad(value: ICategory[]) {
